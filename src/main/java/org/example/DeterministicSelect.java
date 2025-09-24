@@ -23,10 +23,8 @@ public final class DeterministicSelect {
         swap(a, pivotIdx, hi);
         int i = lo;
         for (int j = lo; j < hi; j++) {
-            if (a[j] <= pivot) {
-                swap(a, i, j);
-                i++;
-            }
+            OpCounter.inc();
+            if (a[j] <= pivot) { swap(a, i, j); i++; }
         }
         swap(a, i, hi);
         return i;
@@ -46,25 +44,25 @@ public final class DeterministicSelect {
             swap(a, lo + m, med);
             m++;
         }
+        DepthCounter.push();
         int medOfMedIdx = medianOfMediansIndex(a, lo, lo + m - 1);
+        DepthCounter.pop();
         return medOfMedIdx;
     }
 
     private static void insertionSort(int[] a, int lo, int hi) {
         for (int i = lo + 1; i <= hi; i++) {
             int v = a[i], j = i - 1;
-            while (j >= lo && a[j] > v) {
-                a[j + 1] = a[j];
-                j--;
+            while (j >= lo) {
+                OpCounter.inc();
+                if (a[j] > v) { a[j + 1] = a[j]; j--; } else break;
             }
             a[j + 1] = v;
         }
     }
 
     private static void swap(int[] a, int i, int j) {
-        int t = a[i];
-        a[i] = a[j];
-        a[j] = t;
+        int t = a[i]; a[i] = a[j]; a[j] = t;
     }
 
     public static int[] kSmallest(int[] a, int k) {
@@ -72,12 +70,12 @@ public final class DeterministicSelect {
         if (k == 0) return new int[0];
         int[] copy = Arrays.copyOf(a, a.length);
         int kth = select(copy, k - 1);
-        int[] res = Arrays.stream(copy).filter(x -> x < kth).toArray();
-        int equalCount = k - res.length;
-        int[] eq = Arrays.stream(copy).filter(x -> x == kth).limit(equalCount).toArray();
+        int[] less = Arrays.stream(copy).filter(x -> x < kth).toArray();
+        int needEq = k - less.length;
+        int[] eq = Arrays.stream(copy).filter(x -> x == kth).limit(needEq).toArray();
         int[] out = new int[k];
-        System.arraycopy(res, 0, out, 0, res.length);
-        System.arraycopy(eq, 0, out, res.length, eq.length);
+        System.arraycopy(less, 0, out, 0, less.length);
+        System.arraycopy(eq, 0, out, less.length, eq.length);
         Arrays.sort(out);
         return out;
     }

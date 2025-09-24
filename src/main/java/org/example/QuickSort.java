@@ -11,19 +11,16 @@ public final class QuickSort {
         quickSort(a, 0, a.length - 1);
     }
 
-
     private static void quickSort(int[] a, int lo, int hi) {
         while (lo < hi) {
             int p = partitionRandom(a, lo, hi);
-
-
-            if ((p - 1 - lo) < (hi - (p + 1))) {
-
-                if (lo < p - 1) quickSort(a, lo, p - 1);
-                lo = p + 1; // tail-eliminate right
+            int leftSize = p - lo;
+            int rightSize = hi - p;
+            if (leftSize < rightSize) {
+                if (lo < p - 1) { DepthCounter.push(); quickSort(a, lo, p - 1); DepthCounter.pop(); }
+                lo = p + 1;
             } else {
-
-                if (p + 1 < hi) quickSort(a, p + 1, hi);
+                if (p + 1 < hi) { DepthCounter.push(); quickSort(a, p + 1, hi); DepthCounter.pop(); }
                 hi = p - 1;
             }
         }
@@ -33,9 +30,9 @@ public final class QuickSort {
         int pivotIdx = ThreadLocalRandom.current().nextInt(lo, hi + 1);
         swap(a, pivotIdx, hi);
         int pivot = a[hi];
-
         int i = lo;
         for (int j = lo; j < hi; j++) {
+            OpCounter.inc(); // comparison a[j] <= pivot
             if (a[j] <= pivot) {
                 swap(a, i, j);
                 i++;
@@ -46,8 +43,6 @@ public final class QuickSort {
     }
 
     private static void swap(int[] a, int i, int j) {
-        int t = a[i];
-        a[i] = a[j];
-        a[j] = t;
+        int t = a[i]; a[i] = a[j]; a[j] = t;
     }
 }

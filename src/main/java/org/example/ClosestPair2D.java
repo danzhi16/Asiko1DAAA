@@ -6,6 +6,7 @@ import java.util.List;
 
 public final class ClosestPair2D {
     public static record Pt(double x, double y) {}
+
     private ClosestPair2D() {}
 
     public static double solve(List<Pt> pts) {
@@ -16,7 +17,10 @@ public final class ClosestPair2D {
         xs.sort(Comparator.comparingDouble(p -> p.x));
         List<Pt> ys = new ArrayList<>(xs);
         ys.sort(Comparator.comparingDouble(p -> p.y));
-        return Math.sqrt(rec(xs, ys));
+        DepthCounter.push();
+        double dist2 = rec(xs, ys);
+        DepthCounter.pop();
+        return Math.sqrt(dist2);
     }
 
     private static double rec(List<Pt> xs, List<Pt> ys) {
@@ -34,8 +38,12 @@ public final class ClosestPair2D {
             else yr.add(p);
         }
 
+        DepthCounter.push();
         double dl = rec(xl, yl);
+        DepthCounter.pop();
+        DepthCounter.push();
         double dr = rec(xr, yr);
+        DepthCounter.pop();
         double d = Math.min(dl, dr);
 
         List<Pt> strip = new ArrayList<>();
@@ -47,10 +55,7 @@ public final class ClosestPair2D {
             Pt a = strip.get(i);
             for (int j = i + 1; j < m && (strip.get(j).y - a.y) <= sqrtD; j++) {
                 double dd = dist2(a, strip.get(j));
-                if (dd < d) {
-                    d = dd;
-                    sqrtD = Math.sqrt(d);
-                }
+                if (dd < d) { d = dd; sqrtD = Math.sqrt(d); }
             }
         }
         return d;
@@ -70,6 +75,7 @@ public final class ClosestPair2D {
     }
 
     private static double dist2(Pt a, Pt b) {
+        OpCounter.inc();
         double dx = a.x - b.x;
         double dy = a.y - b.y;
         return dx * dx + dy * dy;
