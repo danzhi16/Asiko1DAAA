@@ -1,71 +1,66 @@
-# Divide-and-Conquer Algorithms: Analysis and Metrics
+# Divide-and-Conquer Algorithms: Metrics & Analysis
 
 ## Architecture Notes
-This project implements classic divide-and-conquer algorithms (MergeSort, QuickSort, Deterministic Select, Closest Pair 2D) with safe recursion patterns. Recursion depth and allocations are tracked using dedicated metrics classes. All algorithms are instrumented to collect:
-- Execution time
-- Recursion depth
-- Operation counters (comparisons, swaps, allocations)
-- Memory allocations
 
-Metrics are exported in CSV format for analysis.
+- **Recursion Depth**: Tracked by `DepthCounter` using thread-local counters. Each recursive call increases depth, and the maximum is recorded.
+- **Operation Counting**: `OpCounter` counts key operations (comparisons, etc.) for each algorithm.
+- **Memory Allocations**: Memory usage is measured before and after each run using `Runtime.getRuntime()`.
+- **CSV Output**: All metrics are written to `results.csv` in semicolon-separated format for Excel compatibility.
 
-## Algorithms & Recurrence Analysis
+## Recurrence Analysis and Proofs
 
-### 1. MergeSort
-- **Recurrence:** T(n) = 2T(n/2) + O(n)
-- **Master Theorem (Case 2):** a=2, b=2, f(n)=O(n)
-- **Solution:** T(n) = Θ(n log n)
-- **Proof:**
-  - By Master Theorem: If f(n) = Θ(n^log_b a), then T(n) = Θ(n log n).
-  - Here, log_2 2 = 1, so f(n) = Θ(n^1) = Θ(n).
+### MergeSort
 
-### 2. QuickSort
-- **Recurrence (average):** T(n) = 2T(n/2) + O(n)
-- **Master Theorem (Case 2):** a=2, b=2, f(n)=O(n)
-- **Solution:** T(n) = Θ(n log n)
-- **Proof:**
-  - Same as MergeSort for average case.
-  - Worst case: T(n) = T(n-1) + O(n) ⇒ T(n) = Θ(n^2)
+- **Recurrence:**  
+  \( T(n) = 2T(n/2) + cn \)
+- **Proof:**  
+  This matches the Master Theorem with \( a=2, b=2, f(n)=\Theta(n) \).  
+  Since \( f(n) = \Theta(n^{\log_2 2}) = \Theta(n) \), this is **Case 2**.  
+  **Result:**  
+  \( T(n) = \Theta(n \log n) \)
 
-### 3. Deterministic Select (Median-of-Medians)
-- **Recurrence:** T(n) ≤ T(n/5) + T(7n/10) + O(n)
-- **Akra-Bazzi Theorem:**
-  - General form: T(n) = Σ a_i T(b_i n) + f(n)
-  - Here, a_1=1, b_1=1/5; a_2=1, b_2=7/10; f(n)=O(n)
-- **Solution:** T(n) = Θ(n)
-- **Proof:**
-  - Akra-Bazzi yields linear time for this recurrence.
+### QuickSort (Randomized, smaller-first recursion)
 
-### 4. Closest Pair of Points (2D)
-- **Recurrence:** T(n) = 2T(n/2) + O(n)
-- **Master Theorem (Case 2):** a=2, b=2, f(n)=O(n)
-- **Solution:** T(n) = Θ(n log n)
-- **Proof:**
-  - Same as MergeSort.
+- **Recurrence (average case):**  
+  \( T(n) = T(k) + T(n-k-1) + cn \), with expected \( k \approx n/2 \)
+- **Proof:**  
+  The expected split is balanced, so by linearity of expectation,  
+  \( T(n) \approx 2T(n/2) + cn \)  
+  By the Master Theorem (as above),  
+  \( T(n) = \Theta(n \log n) \)  
+  (Worst case is \( O(n^2) \), but randomization avoids this.)
 
-## Plots & Discussion
-- **Plots:**
-  - Time vs n
-  - Depth vs n
-- **Constant-factor effects:**
-  - Cache locality, JVM garbage collection, and buffer reuse impact constant factors in running time and memory usage.
+### Deterministic Select (Median-of-Medians)
+
+- **Recurrence:**  
+  \( T(n) \leq T(\lceil n/5 \rceil) + T(7n/10) + cn \)
+- **Proof:**  
+  This fits the Akra-Bazzi Theorem.  
+  Let \( T(n) = T(n/5) + T(7n/10) + cn \).  
+  The solution is \( T(n) = O(n) \) (see CLRS, Section 9.3, or Akra-Bazzi examples).  
+  **Result:**  
+  \( T(n) = O(n) \)
+
+### Closest Pair of Points (2D)
+
+- **Recurrence:**  
+  \( T(n) = 2T(n/2) + cn \)
+- **Proof:**  
+  This is identical to MergeSort, so by the Master Theorem Case 2,  
+  \( T(n) = \Theta(n \log n) \)
+
+## Plots
+
+- **Time vs n:** Shows \( n \log n \) or \( n \) scaling as predicted.
+- **Depth vs n:** Confirms logarithmic recursion depth.
+- **Constant-Factor Effects:** JVM warmup, garbage collection, and cache effects are visible in timing and allocation metrics.
 
 ## Summary
-Theoretical results (Θ(n log n) for sorting/closest pair, Θ(n) for select) align with measured metrics. Minor mismatches arise due to implementation details and hardware effects.
 
-## CSV Format
-Results are exported as:
-```
-algorithmName;runTime;counter;depth;allocation;...
-```
-Each metric is separated by a semicolon for compatibility with spreadsheet tools.
-
-## References
-- Cormen, Leiserson, Rivest, Stein. Introduction to Algorithms.
-- Akra-Bazzi Theorem: https://en.wikipedia.org/wiki/Akra%E2%80%93Bazzi_method
-- Master Theorem: https://en.wikipedia.org/wiki/Master_theorem_(analysis_of_algorithms)
+- **Theory vs Measurement:** Empirical results match theoretical predictions for time and depth. Minor mismatches are due to JVM and system overhead.
+- **CSV Format:** Results are exported as  
+  `algorithmName;runTimeNanos;counter;depth;allocationBytes;n`
 
 ---
-Date: September 27, 2025
-Author: Nursultan Khaimuldin
 
+See `results.csv` for raw data and plots.
